@@ -3,7 +3,7 @@
 <title>Hello World! from Soften</title>
 </head>
 <body>
-	<h1>Welcome! We are learning DevOps!! </h1>
+	<h1>Welcome! We are learning DevOps!! new batch </h1>
 	<p>
 		It is now
 		<%= new java.util.Date() %></p>
