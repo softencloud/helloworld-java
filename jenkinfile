@@ -1,0 +1,59 @@
+JENKINS FILE
+--------------
+pipeline {
+    agent any
+
+    stages {
+
+        stage('git clone') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/softencloud/helloworld-java.git'
+            }
+        }
+
+        stage('maven build') {
+            steps {
+                sh 'sudo mvn clean install'
+            }
+        }
+
+        stage('docker build') {
+            steps {
+                sh 'sudo docker build -t javaapp:latest -f /root/Dockerfile .'
+            }
+        }
+
+        stage('Docker Login & Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'anujohn',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    sh '''
+                        echo "$DOCKER_PASS" | sudo docker login -u "$DOCKER_USER" --password-stdin
+
+                        sudo docker tag javaapp:latest anujohn/javaapp:latest
+
+                        sudo docker push anujohn/javaapp:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook via SSH') {
+            steps {
+                sshagent(['anu']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ansible@172.31.43.156 "ansible-playbook /etc/ansible/playbook.yml"
+                    '''
+                }
+            }
+        }
+
+    }
+}
+
+
