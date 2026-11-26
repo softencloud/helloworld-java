@@ -1,0 +1,41 @@
+PLAYBOOK
+---------
+- name: Install Docker, pull image, and run container
+  hosts: all
+  become: yes
+
+  vars:
+    docker_image: "anujohn/javaapp"
+    docker_tag: "latest"
+    container_name: "tomcat"
+
+  tasks:
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+
+    - name: Enable Docker service
+      service:
+        name: docker
+        enabled: yes
+
+    - name: Pull Docker image
+      command: docker pull {{ docker_image }}:{{ docker_tag }}
+
+    - name: Remove old container (safe version)
+      command: docker rm -f {{ container_name }}
+      ignore_errors: yes
+
+    - name: Run Docker container
+      command: >
+        docker run -d
+        --name {{ container_name }}
+        -p 8080:8080
+        {{ docker_image }}:{{ docker_tag }}
